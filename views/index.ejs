@@ -3,22 +3,49 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>    
+    
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
   </head>
 
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">TV Remote</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Lounge</a></li>
+              <li><a href="#about">Study</a></li>
+              <li><a href="#contact">Kitchen</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    <div class="container">
 
-    <div class="commands">
-        <a  data-remote="Sony_RM-862.1" data-command="tv_off" data-count="2"><img src="/images/off.png"/></a>
-        <a  data-remote="Sony_RM-862.1" data-command="1" data-count="2"><img src="/images/ontv.png"/></a>
-        <br/>
-        <a  data-remote="Sony_RM-862.1" data-command="volume-" data-count="5"><img src="/images/down_volume.png"/></a>
-        <a  data-remote="Sony_RM-862.1" data-command="volume+" data-count="5"><img src="/images/up_volume.png"/></a>
+
+        <div class="commands row-fluid">
+            <a href="#" class="thumbnail" data-remote="Sony_RM-862.1" data-command="tv_off" data-count="2"><img src="/images/off.png"/></a>
+            <a href="#" class="thumbnail" data-remote="Sony_RM-862.1" data-command="1" data-count="2"><img src="/images/ontv.png"/></a>
+           
+            <a href="#" class="thumbnail" data-remote="Sony_RM-862.1" data-command="volume-" data-count="5"><img src="/images/down_volume.png"/></a>
+            <a href="#" class="thumbnail" data-remote="Sony_RM-862.1" data-command="volume+" data-count="5"><img src="/images/up_volume.png"/></a>
+        </div>
     </div>
 
 
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> 
+    <script src="bootstrap/js/bootstrap.min.js"></script>
     <script>
         $("div.commands").on("click", "a", function(e){
             var remote = $(this).attr('data-remote'),

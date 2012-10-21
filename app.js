@@ -32,7 +32,7 @@ app.get('/', routes.index);
 app.get('/users', user.list);
 
 // connect to the lirc server
-var client = net.connect({host: 'raspberrypi', port: 8765},
+var client = new net.createConnection(8765 , (process.env.LIRC_SERVER || 'localhost'),
     function() { //'connect' listener
   console.log('client connected');
   http.createServer(app).listen(app.get('port'), function(){
@@ -46,6 +46,9 @@ client.on('data', function(data) {
 client.on('end', function() {
   console.log('client disconnected');
 });
+client.on('error', function(err) {
+  console.log('Socket Error :: ' + err);
+});
 
 
 app.get('/send_once/:remote/:command/:count', function (req, res) {
@@ -53,8 +56,6 @@ app.get('/send_once/:remote/:command/:count', function (req, res) {
         command = req.params.command,
         count = req.params.count;
     client.write('SEND_ONCE '+remote+' '+command+' '+count+'\n'); // \r
+    res.send('send command');
     });
 
-app.get('/1', function (req, res) {
-    client.write('SEND_ONCE Sony_RM-862.1 1 2\r\n');
-    });
