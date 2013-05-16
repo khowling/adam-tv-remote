@@ -5,10 +5,10 @@
 
 var express = require('express')
   , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
-  , net = require('net');
+  , net = require('net')
+  , spawn = require('child_process').spawn;
 
 var app = express();
 
@@ -29,16 +29,18 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
-app.get('/users', user.list);
 
 // connect to the lirc server
-var client = new net.createConnection(8765 , (process.env.LIRC_SERVER || 'localhost'),
-    function() { //'connect' listener
-  console.log('client connected');
+// var client = new net.createConnection(8765 , (process.env.LIRC_SERVER || 'localhost'),
+//    function() { //'connect' listener
+//  console.log('client connected');
+  
   http.createServer(app).listen(app.get('port'), function(){
       console.log("Express server listening on port " + app.get('port'));
     });
-});
+    
+//});
+/*
 client.on('data', function(data) {
   console.log(data.toString());
   //client.end();
@@ -49,13 +51,42 @@ client.on('end', function() {
 client.on('error', function(err) {
   console.log('Socket Error :: ' + err);
 });
-
+*/
 
 app.get('/send_once/:remote/:command/:count', function (req, res) {
     var remote = req.params.remote,
         command = req.params.command,
         count = req.params.count;
-    client.write('SEND_ONCE '+remote+' '+command+' '+count+'\n'); // \r
+//    client.write('SEND_ONCE '+remote+' '+command+' '+count+'\n'); // \r
     res.send('send command');
     });
 
+
+app.post ('/send_once', function (req, res) {
+    var command = req.body.command,
+        cmdobj = JSON.parse(command);
+    console.log (command);
+    
+    for (i in cmdobj) {
+        console.log('Loop : ' + i + ' : ' + cmdobj[i].device   + ' : ' + cmdobj[i].cmd  );
+    }
+        
+});
+
+app.get('/launchplayer', function (req, res) {
+    var mplayer  = spawn('mplayer', [path.join(__dirname, 'public/media/')+'test1.mp4']);
+    console.log('Spawned child pid: ' + mplayer.pid);
+    
+    mplayer.stdout.on('data', function (data) {
+      console.log('stdout: ' + data);
+    });
+    
+    mplayer.stderr.on('data', function (data) {
+      console.log('stderr: ' + data);
+    });
+    mplayer.on('exit', function (code, signal) {
+        console.log('child process terminated due to receipt of signal '+signal);
+        res.send('send command');
+    });
+    
+}); 

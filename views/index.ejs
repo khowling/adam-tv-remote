@@ -9,9 +9,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
+    <script src="angular/angular.js"></script>
+    <script src="angular/angular-resource.js"></script> 
+    <script>
+    
+        function CatalogueCtrl($scope, $location) {
+            
+            $scope.newButt =   { 
+                    sequence: [],
+                    icon: 'images/four-hd.png'
+                }
+            
+            $scope.addCmd = function (cmd) {
+                console.log ('adding ' + cmd);
+                $scope.newButt.sequence.push (cmd);
+            }
+            
+            $scope.save = function() {
+                console.log ('saving name: ' + $scope.newButt.label);
+                 $scope.buttons.push($scope.newButt);
+                 $("#myModal").modal('hide');
+            }
+
+            $scope.cmds = 
+                {   'tvon' : {
+                        device : 'Son',
+                        cmd : 'power'
+                    },
+                    'hxon' : {
+                        device : 'Hum',
+                        cmd : 'power'
+                    }
+                };
+            
+            $scope.buttons = [
+                {
+                        label : 'bb 1',
+                        icon : 'images/off.png',
+                        sequence : [ $scope.cmds.tvon, $scope.cmds.hxon]
+                },
+                {
+                        label : 'bb 2',
+                        icon : 'images/ontv.png',
+                        sequence : [ 'tvon', 'hxon']
+                }
+            ];
+        }
+
+        
+        
+    </script>
   </head>
 
-  <body>
+  <body ng-app ng-controller="CatalogueCtrl">
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -33,46 +83,85 @@
     </div>
     <div class="container">
 
-        <div class="row commands">
+        <div class="row commands" >
         <lu class="thumbnails">
-            <li class="span3">
-                <a  class="thumbnail" data-remote="Sony_RM-862.1" data-command="tv_off" data-count="2"><img src="/images/off.png"/></a>
+            <li class="span3" ng-repeat="b in buttons">
+                <a  class="thumbnail" data-remote='{{b.sequence}}'>
+                    <img src="{{b.icon}}"/>{{b.label}}
+                </a>
             </li>
-            <li class="span3">
-            <a class="thumbnail" data-remote="Sony_RM-862.1" data-command="1" data-count="2"><img src="/images/ontv.png"/></a>
-           </li>
-            <li class="span3">
-            <a class="thumbnail" data-remote="Sony_RM-862.1" data-command="volume-" data-count="5"><img src="/images/down_volume.png"/></a>
-            </li>
-            <li class="span3">
-            <a class="thumbnail" data-remote="Sony_RM-862.1" data-command="volume+" data-count="5"><img src="/images/up_volume.png"/></a>
-            </li>
-            <li class="span3">
-                <a class="thumbnail" data-remote="Philips_RC2582" data-command="ch+" data-count="1"><img src="/images/chup.png"/></a>
-            </li>
-            <li class="span3">
-                <a class="thumbnail" data-remote="Philips_RC2582" data-command="ch-" data-count="1"><img src="/images/chdown.png"/></a>
+            <li class="span3" >
+                <a  class="thumbnail" href="#myModal" role="button" data-toggle="modal" >
+                    <img src=""/>new..
+                </a>
             </li>
         </lu>
     </div>
 
 
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> 
+    <script src="jquery/jquery1.9.1.js"></script> 
     <script src="bootstrap/js/bootstrap.min.js"></script>
+    
     <script>
         $("div.commands").on("click", "a", function(e){
-            var remote = $(this).attr('data-remote'),
-                command = $(this).attr('data-command'),
-                count = $(this).attr('data-count');
+            var remote = $(this).attr('data-remote');
+                //command = $(this).attr('data-command'),
+                //count = $(this).attr('data-count');
 
+            //alert (remote);
 
-
-            $.get( '/send_once/'+remote+'/'+command+'/'+count, function(data) {
+            //$.get( '/send_once/'+remote+'/'+command+'/'+count, function(data) {
+            $.post( '/send_once', {command: remote}, function(data) {
               //$('.result').html(data);
               //alert('Load was performed.');
             });
         });
     </script>
+
+
+    <!-- Modal -->
+    <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <form ng-submit="save()">
+      
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Define new Button</h3>
+        </div>
+        
+        <div class="modal-body">
+    
+            <label class="control-label" for="inputName">Label</label>
+            <div class="control-group" ng-class="{error: Regform.username.$invalid}">
+                <div class="input-control text">
+                  <input type="text" ng-model="newButt.label" ng-minlength="5"
+                   ng-maxlength="20" name="name" placeholder="name" required>
+                </div>
+            </div>
+
+            <div class="row commands">
+                <lu class="thumbnails">
+                    <li class="span1" ng-repeat="(key, c) in cmds">
+                        <a class="btn"  ng-click="addCmd (key)">{{key}}</a>
+                    </li>
+                </lu>
+            </div>
+            
+            <div class="row commands" style="margin-left: 5px;">
+                <lu class="thumbnails">
+                    <li  ng-repeat="s in newButt.sequence" style="margin-left: 5px;">
+                        <span style="padding: 5px;" class="label label-success" >{{s}}</a>
+                    </li>
+                </lu>
+            </div>
+            
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary" type="submit">Save changes</button>
+        </div>
+      </form>
+    </div>
 
   </body>
 </html>
