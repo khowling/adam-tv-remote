@@ -13,13 +13,22 @@
     <script src="angular/angular-resource.js"></script> 
     <script>
     
-        function CatalogueCtrl($scope, $location) {
+ 	angular.module('app', ['ngResource']);
+
+        function CatalogueCtrl($scope, $location, $resource) {
+
+	var Button = $resource('/button/:buttonId', {buttonId:'@id'});
+	var Remote = $resource('/remote/:buttonId', {buttonId:'@id'});
             
-            $scope.newButt =   { 
-                    sequence: [],
-                    icon: 'images/four-hd.png'
-                }
-            
+            var reset = function () {
+		$scope.newButt =   { 
+		    label: '',
+		    sequence: [],
+		    icon: 'images/four-hd.png'
+		}
+	}
+	reset();
+		    
             $scope.addCmd = function (cmd) {
                 console.log ('adding ' + cmd);
                 $scope.newButt.sequence.push (cmd);
@@ -27,33 +36,20 @@
             
             $scope.save = function() {
                 console.log ('saving name: ' + $scope.newButt.label);
-                 $scope.buttons.push($scope.newButt);
-                 $("#myModal").modal('hide');
+		new Button({'button': $scope.newButt}).$save();
+                $scope.buttons.push($scope.newButt);
+	        reset();
+                $("#myModal").modal('hide');
             }
 
-            $scope.cmds = 
-                {   'tvon' : {
-                        device : 'Son',
-                        cmd : 'power'
-                    },
-                    'hxon' : {
-                        device : 'Hum',
-                        cmd : 'power'
-                    }
-                };
-            
-            $scope.buttons = [
-                {
-                        label : 'bb 1',
-                        icon : 'images/off.png',
-                        sequence : [ $scope.cmds.tvon, $scope.cmds.hxon]
-                },
-                {
-                        label : 'bb 2',
-                        icon : 'images/ontv.png',
-                        sequence : [ 'tvon', 'hxon']
-                }
-            ];
+	$scope.sendCmd = function (seq) {
+		console.log ('sending : ' + seq);
+	    $.post( '/send_once', {'command': seq}, function(data) {
+	    });
+	}
+
+            $scope.remotes = Remote.query (function(data) { console.log ('gotit ' + JSON.stringify(data));});
+            $scope.buttons = Button.query(function() { console.log ('gotit');});
         }
 
         
@@ -61,7 +57,7 @@
     </script>
   </head>
 
-  <body ng-app ng-controller="CatalogueCtrl">
+  <body ng-app="app"  ng-controller="CatalogueCtrl">
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -86,7 +82,7 @@
         <div class="row commands" >
         <lu class="thumbnails">
             <li class="span3" ng-repeat="b in buttons">
-                <a  class="thumbnail" data-remote='{{b.sequence}}'>
+                <a  class="thumbnail" ng-click="sendCmd (b.sequence)" >
                     <img src="{{b.icon}}"/>{{b.label}}
                 </a>
             </li>
@@ -102,21 +98,6 @@
     <script src="jquery/jquery1.9.1.js"></script> 
     <script src="bootstrap/js/bootstrap.min.js"></script>
     
-    <script>
-        $("div.commands").on("click", "a", function(e){
-            var remote = $(this).attr('data-remote');
-                //command = $(this).attr('data-command'),
-                //count = $(this).attr('data-count');
-
-            //alert (remote);
-
-            //$.get( '/send_once/'+remote+'/'+command+'/'+count, function(data) {
-            $.post( '/send_once', {command: remote}, function(data) {
-              //$('.result').html(data);
-              //alert('Load was performed.');
-            });
-        });
-    </script>
 
 
     <!-- Modal -->
@@ -133,20 +114,34 @@
             <label class="control-label" for="inputName">Label</label>
             <div class="control-group" ng-class="{error: Regform.username.$invalid}">
                 <div class="input-control text">
-                  <input type="text" ng-model="newButt.label" ng-minlength="5"
+                  <input type="text" ng-model="newButt.label" ng-minlength="1"
                    ng-maxlength="20" name="name" placeholder="name" required>
                 </div>
             </div>
 
-            <div class="row commands">
-                <lu class="thumbnails">
-                    <li class="span1" ng-repeat="(key, c) in cmds">
-                        <a class="btn"  ng-click="addCmd (key)">{{key}}</a>
-                    </li>
-                </lu>
+            <div class="accordion" id="acc1">
+
+									<div class="accordion-group" ng-repeat="(device, cmds) in remotes[0]">
+										<div class="accordion-heading">
+											<a class="accordion-toggle" data-toggle="collapse" data-parent="#acc1" href="#collapse{{$index}}">
+												 {{device}}
+											</a>
+										</div>
+										<div id="collapse{{$index}}" class="accordion-body collapse in">
+											<div class="accordion-inner">
+												   <lu  style="margin-left:0;" class="thumbnails">
+														<li style="margin-left:0;" ng-repeat="(key, c) in cmds">
+																<a class="btn"  ng-click="addCmd (key)">{{key}}</a>
+														</li>
+												   </lu>
+											</div>
+										</div>
+									</div>
+
+							
             </div>
             
-            <div class="row commands" style="margin-left: 5px;">
+            <div class="row" style="margin-left: 5px;">
                 <lu class="thumbnails">
                     <li  ng-repeat="s in newButt.sequence" style="margin-left: 5px;">
                         <span style="padding: 5px;" class="label label-success" >{{s}}</a>

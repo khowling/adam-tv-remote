@@ -1,0 +1,5 @@
+ENV.sh
+node_modules
+node_modules/*
+database.nosql
+database.nosql~

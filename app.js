@@ -8,6 +8,7 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , net = require('net')
+  , nosql = require('nosql').load('./database.nosql')
   , spawn = require('child_process').spawn;
 
 var app = express();
@@ -27,6 +28,21 @@ app.configure(function(){
 app.configure('development', function(){
   app.use(express.errorHandler());
 });
+
+
+var remotes = {  
+	 'Sony': {
+		'power': { code :'123', freq:'123'},
+		'p+': { code :'123', freq:'123'},
+		'p-': { code :'123', freq:'123'}
+                 },
+         'Humax': {
+		'power': { code :'123', freq:'123'},
+		'vol+': { code :'123', freq:'123'},
+		'vol-': { code :'123', freq:'123'}
+                }
+	};
+
 
 app.get('/', routes.index);
 
@@ -61,14 +77,35 @@ app.get('/send_once/:remote/:command/:count', function (req, res) {
     res.send('send command');
     });
 
+app.post ('/button', function (req, res) {
+    var button = req.body.button
+    //    , bobj = JSON.parse(button);
+	;
+	
+    console.log (button);
+	nosql.insert(button, 'insert new button');
+    res.send(200); // HTTP OK
+});
+app.get ('/button', function (req,res) {
+	nosql.all ('', function (docs, cnt) {
+		res.send (docs);
+	});
+});
+app.get ('/remote', function (req,res) {
+	console.log (' sending ' + JSON.stringify(remotes));
+	res.send ({'remotes': remotes});
+});
+
 
 app.post ('/send_once', function (req, res) {
-    var command = req.body.command,
-        cmdobj = JSON.parse(command);
+    var command = req.body.command
+
+//      ,  cmdobj = JSON.parse(command);
+	;
     console.log (command);
     
-    for (i in cmdobj) {
-        console.log('Loop : ' + i + ' : ' + cmdobj[i].device   + ' : ' + cmdobj[i].cmd  );
+    for (i in command) {
+        console.log('Loop : ' + i + ' : ' + command[i].device   + ' : ' + command[i].cmd  );
     }
         
 });
